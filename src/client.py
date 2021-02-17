@@ -6,7 +6,7 @@ import time
 import collections
 
 
-SERIAL_PORT = '/dev/tty.usbserial-1110'
+SERIAL_PORT = '/dev/tty.usbserial-130'
 POST_URL = 'http://192.168.31.5:5000/api/v1/csi/items'
 SEND_BATCH = 10
 BAUD_RATE = 115200
