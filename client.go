@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -31,7 +32,7 @@ var u = url.URL{Scheme: "ws",
 
 // 将串口数据逐字节写入channel
 func produceSerial(ch chan<- byte) {
-	serialPort := GetEnvOrDefault("SERIAL_PORT", "/dev/tty.usbserial-1130")
+	serialPort := GetEnvOrDefault("SERIAL_PORT", "/dev/tty.usbserial-0001")
 	c := &serial.Config{Name: serialPort, Baud: 115200}
 	s, err := serial.OpenPort(c)
 	if err != nil { log.Fatal(err) }
@@ -60,8 +61,9 @@ func consumerByte(byteChannel <-chan byte, stringChannel chan<- string) {
 		if b == '\n' {
 			line := buf.String()
 			buf.Reset()
-			log.Printf("Assembly: %s", line)
 			line = strings.TrimSpace(line)
+			line += ", " + strconv.FormatInt(time.Now().UnixNano() / 1000000, 10)
+			log.Printf("Assembly: %s", line)
 			stringChannel <- line
 		}
 	}
@@ -83,7 +85,6 @@ func dialWebsocketConnection() *websocket.Conn {
 func main() {
 	// disable log
 	//log.SetOutput(ioutil.Discard)
-	// websocket communication
 	c := InitDialConnection()
 	// serial communication
 	byteChannel := make(chan byte, 1024)
@@ -91,6 +92,7 @@ func main() {
 
 	go produceSerial(byteChannel)
 	go consumerByte(byteChannel, stringChannel)
+	// websocket communication
 	SendData(stringChannel, c)
 }
 
