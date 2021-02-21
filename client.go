@@ -31,6 +31,7 @@ var u = url.URL{Scheme: "ws",
 	Path: "/echo"}
 
 // 将串口数据逐字节写入channel
+// 白色是AP，红色是STA
 func produceSerial(ch chan<- byte) {
 	serialPort := GetEnvOrDefault("SERIAL_PORT", "/dev/tty.usbserial-0001")
 	c := &serial.Config{Name: serialPort, Baud: 115200}
