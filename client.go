@@ -27,7 +27,7 @@ func GetEnvOrDefault(name string, defaultValue string) string {
 }
 
 var u = url.URL{Scheme: "ws",
-	Host: *flag.String("addr", "localhost:8080", "http service address"),
+	Host: *flag.String("addr", "localhost:5000", "http service address"),
 	Path: "/echo"}
 
 // 将串口数据逐字节写入channel
@@ -83,17 +83,32 @@ func dialWebsocketConnection() *websocket.Conn {
 	return c
 }
 
+// func main() {
+// 	// disable log
+// 	//log.SetOutput(ioutil.Discard)
+// 	c := InitDialConnection()
+// 	// serial communication
+// 	byteChannel := make(chan byte, 1024)
+// 	stringChannel := make(chan string, 1024)
+//
+// 	go produceSerial(byteChannel)
+// 	go consumerByte(byteChannel, stringChannel)
+// 	// websocket communication
+// 	SendData(stringChannel, c)
+// }
+
 func main() {
-	// disable log
-	//log.SetOutput(ioutil.Discard)
 	c := InitDialConnection()
-	// serial communication
-	byteChannel := make(chan byte, 1024)
+	defer c.Close()
 	stringChannel := make(chan string, 1024)
 
-	go produceSerial(byteChannel)
-	go consumerByte(byteChannel, stringChannel)
-	// websocket communication
+	go func() {
+		for {
+			time.Sleep(1 * time.Second)
+			stringChannel <- time.Now().String()
+		}
+	}()
+	log.Println("start send data")
 	SendData(stringChannel, c)
 }
 
