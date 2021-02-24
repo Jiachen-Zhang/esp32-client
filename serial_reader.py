@@ -10,16 +10,32 @@ class SerialReader:
         self.serial = Serial(_serial_port, _baud_rate, timeout=3)
         self.serial.flushInput()
 
+    @staticmethod
+    def __append_time(serial_data: bytes) -> str:
+        """
+        remove \r\n and append timestamp to end of line
+        :param serial_data:
+        :return:
+        """
+        serial_data = serial_data[:-2]
+        log.debug('SERIAL: {}'.format(serial_data))
+        try:
+            _data: str = serial_data.decode('utf-8')
+        except UnicodeDecodeError:
+            return ''
+        _data += ', {}\n'.format(time.time())
+        return _data
+
     def assembly_serial_data(self):
-        while _data := self.serial.read_until(expected=LF, size=4096):
-            log.debug('SERIAL: {}'.format(_data))
-            try:
-                _data = _data.decode('utf-8')
-            except UnicodeDecodeError:
+        while serial_data := self.serial.read_until(expected=LF, size=4096):
+            # remove /r/n
+            serial_data = self.__append_time(serial_data)
+            print(serial_data, end='')
+            if serial_data == '' or not serial_data.startswith('CSI_DATA'):
                 continue
-            _data += ', {}'.format(time.time())
+            assert serial_data.endswith('\n')
             try:
-                SERIAL_QUEUE.put_nowait(_data)
+                SERIAL_QUEUE.put_nowait(serial_data)
             except Full:
                 log.warn('Write Failed to SERIAL_QUEUE [Full]')
 
@@ -31,4 +47,4 @@ if __name__ == '__main__':
     serial_reader = SerialReader(_serial_port=serial_port, _baud_rate=baud_rate)
     _thread.start_new_thread(serial_reader.assembly_serial_data, ())
     while data := SERIAL_QUEUE.get():
-        print('READ: {}'.format(data))
+        print('READ: {}'.format(data), end='')
