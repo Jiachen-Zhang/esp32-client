@@ -27,7 +27,8 @@ class SerialReader:
         return _data
 
     def assembly_serial_data(self):
-        while serial_data := self.serial.read_until(expected=LF, size=4096):
+        while True:
+            serial_data = self.serial.read_until(expected=LF, size=4096)
             # remove /r/n
             serial_data = self.__append_time(serial_data)
             print(serial_data, end='')

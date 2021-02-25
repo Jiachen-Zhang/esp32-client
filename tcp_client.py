@@ -24,7 +24,8 @@ class TCPClient:
 
     def send_serial_data(self):
         s = self.__connect()
-        while serial_data := SERIAL_QUEUE.get():
+        while True:
+            serial_data = SERIAL_QUEUE.get()
             assert isinstance(serial_data, str), 'wrong type of data read from SERIAL_QUEUE'
             _data: bytes = serial_data.encode('utf-8')
             assert _data.endswith(b'\n')
@@ -38,17 +39,36 @@ class TCPClient:
 
 if __name__ == '__main__':
     import _thread
+    from threading import Timer
     from queue import Full
-    data = 'CSI_DATA,AP,3C:71:BF:6D:2A:78,-73,11,1,0,1,1,1,0,0,0,0,-93,0,1,1,80272146,0,101,0,0,80.363225,384,' \
-           '[101 -48 5 0 0 0 0 0 0 0 5 2 23 12 25 13 27 16 28 19 27 20 24 22 22 23 20 24 19 25 18 25 20 27 20 27 18 ' \
-           '26 16 26 16 25 16 25 14 23 12 21 12 21 12 20 14 19 15 18 14 17 16 17 18 16 18 14 10 6 20 11 20 10 22 10 ' \
-           '22 10 23 10 25 11 25 10 24 8 25 7 27 5 27 5 26 6 26 7 27 8 27 7 28 6 29 5 27 4 25 3 25 3 26 4 26 4 26 3 ' \
-           '26 3 25 3 24 1 5 0 0 0 0 0 0 0 0 0 ], {}\n'
+    from math import sin
+
+    data: str = 'CSI_DATA,AP,3C:71:BF:6D:2A:78,-73,11,1,0,1,1,1,0,0,0,0,-93,0,1,1,80272146,0,101,0,0,80.363225,384,[' \
+                '99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 ' \
+                '99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 ' \
+                '99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 99 0 ' \
+                '99 0 99 0 99 0 99 0], {}\n'
     tcp_client = TCPClient()
     _thread.start_new_thread(tcp_client.send_serial_data, ())
-    while True:
-        try:
-            SERIAL_QUEUE.put_nowait(data.format(time.time()))
-        except Full:
-            pass
-        time.sleep(0.01)
+    x = 0
+
+
+    def produce_data():
+        log.info('produce_data {}'.format(time.time()))
+        global x
+        for _ in range(50):
+            try:
+                x += 1
+                val: str = str(x)  # str(int(sin(x/30.0) * 50 + 50))
+                _data = data.replace('99', val)
+                SERIAL_QUEUE.put_nowait(_data.format(time.time()))
+                time.sleep(0.015)
+                log.info('val = {}'.format(val))
+            except Full:
+                log.warn('Write Failed to SERIAL_QUEUE [Full]')
+                pass
+
+
+    while producer_timer := Timer(interval=1, function=produce_data):
+        producer_timer.start()
+        producer_timer.join()
