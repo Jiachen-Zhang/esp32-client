@@ -3,7 +3,7 @@
 TCP客户端，用于将串口数据发送至服务端
 """
 import time
-from queue import Empty, Full
+from queue import Full
 from socket import socket, AF_INET, SOCK_STREAM
 from utils.logger import log
 from utils.channel import SERIAL_QUEUE
@@ -58,12 +58,9 @@ class TCPClient:
         清除队列缓冲的所有消息
         :return:
         """
-        with SERIAL_QUEUE.mutex:
-            while True:
-                try:
-                    SERIAL_QUEUE.get_nowait()
-                except Empty:
-                    break
+        while not SERIAL_QUEUE.empty():
+            SERIAL_QUEUE.get_nowait()
+        return True
 
 
 if __name__ == '__main__':
