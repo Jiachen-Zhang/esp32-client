@@ -40,11 +40,15 @@ class TCPClient:
         :return:
         """
         _s = self.__try_connect()
+        i = 0
         while True:
+            i += 1
             serial_data = SERIAL_QUEUE.get()
             assert isinstance(serial_data, str), 'wrong type of data read from SERIAL_QUEUE'
             _data: bytes = serial_data.encode('utf-8')
             assert _data.endswith(b'\n')
+            if i % 2 == 0:
+                continue
             try:
                 _s.sendall(_data)
             except BrokenPipeError:

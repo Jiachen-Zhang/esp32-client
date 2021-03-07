@@ -3,4 +3,4 @@
 """
 from queue import Queue
 
-SERIAL_QUEUE: Queue = Queue(maxsize=64)
+SERIAL_QUEUE: Queue = Queue(maxsize=64*128)

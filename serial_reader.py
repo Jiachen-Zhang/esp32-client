@@ -50,7 +50,7 @@ class SerialReader:
             serial_data = self.serial.read_until(expected=LF, size=4096)
             # remove /r/n
             serial_data = self.__append_time(serial_data)
-            print(serial_data, end='')
+            # print(serial_data, end='')
             if serial_data == '' or not serial_data.startswith('CSI_DATA'):
                 continue
             assert serial_data.endswith('\n')
@@ -63,7 +63,7 @@ class SerialReader:
 if __name__ == '__main__':
     import _thread
     SERIAL_PORT = '/dev/tty.usbserial-0001'
-    BAUD_RATE = 115200
+    BAUD_RATE = 921600
     serial_reader = SerialReader(_serial_port=SERIAL_PORT, _baud_rate=BAUD_RATE)
     _thread.start_new_thread(serial_reader.assembly_serial_data, ())
     while data := SERIAL_QUEUE.get():
