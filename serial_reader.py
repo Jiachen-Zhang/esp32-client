@@ -78,9 +78,7 @@ class SerialReader:
         else:
             while True:
                 serial_data = self.__read_serial_data()
-                if serial_data == '' or not serial_data.startswith('CSI_DATA'):
-                    continue
-                assert serial_data.endswith('\n')
+                # assert serial_data.endswith('\n')
                 self.serial_pipe_sender.send(serial_data)
 
 
@@ -89,8 +87,8 @@ if __name__ == '__main__':
     from multiprocessing import Process
     SERIAL_PIPE = Pipe()
     serial_reader = SerialReader(_serial_pipe_sender=SERIAL_PIPE[0],
-                                 _serial_port='/dev/tty.usbserial-0001',
-                                 _baud_rate=921600)
+                                 _serial_port='/dev/tty.usbserial-1130',
+                                 _baud_rate=115200)
     p = Process(target=serial_reader.assembly_serial_data,
                 args=())
     p.start()

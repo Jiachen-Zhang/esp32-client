@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     SERIAL_PIPE = Pipe()
     serial_reader = SerialReader(_serial_pipe_sender=SERIAL_PIPE[0],
-                                 _serial_port='/dev/tty.usbserial-0001',
+                                 _serial_port='/dev/ttyUSB0',    # tty.usbserial-0001
                                  _baud_rate=921600)
     p = Process(target=serial_reader.assembly_serial_data,
                 args=())
@@ -43,7 +43,16 @@ if __name__ == '__main__':
     data = []
     MAX_LEN = 1024
     while True:
-        line = SERIAL_PIPE[1].recv()
+        line: str = SERIAL_PIPE[1].recv()
+        line = line.strip()
+        if 'CSI_DATA' not in line:
+            log.info(line)
+            continue
+        if not line.startswith('CSI_DATA'):
+            line = line[1:]
+        if not line.startswith('CSI_DATA'):
+            log.info(line)
+            continue
         # remove \r\n
         data.append(line.strip())
         LEN = len(data)
