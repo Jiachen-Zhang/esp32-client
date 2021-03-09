@@ -1,3 +1,2 @@
-aiohttp==3.7.3
 pyserial==3.5
-python-socketio==5.0.4
+requests==2.25.1
